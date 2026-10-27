@@ -1,7 +1,7 @@
 const express = require('express');
 const os = require('os');
 
-const VERSION = '1.0.0';
+const VERSION = '1.1.0';
 const app = express();
 
 app.get('/health', (req, res) => {
