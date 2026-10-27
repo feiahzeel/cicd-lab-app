@@ -1,0 +1,47 @@
+version: 0.2
+
+env:
+  variables:
+    APP_ENV: "production"
+  parameter-store:
+    DB_URL: "/myapp/prod/db_url"
+    SECRET_KEY: "/myapp/prod/secret_key"
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 22
+    commands:
+      - echo "Instalando dependencias..."
+      - npm ci --prefer-offline --no-audit --no-fund
+  pre_build:
+    commands:
+      - echo "Lint..."
+      - npm run lint
+      - echo "Tests con cobertura..."
+      - npm test -- --coverage
+  build:
+    commands:
+      - echo "Build..."
+      - npm run build
+      - echo "Build terminado el $(date)"
+  post_build:
+    commands:
+      - echo "Empaquetando revisión para CodeDeploy..."
+      - cp appspec.yml dist/
+      - cp -r scripts dist/
+
+artifacts:
+  base-directory: dist      # appspec.yml queda en la RAÍZ del ZIP
+  files:
+    - "**/*"
+
+reports:
+  jest-coverage:
+    files:
+      - "coverage/clover.xml"
+    file-format: CLOVERXML
+
+cache:
+  paths:
+    - "/root/.npm/**/*"     # npm ci borra node_modules; se cachea la caché de npm
